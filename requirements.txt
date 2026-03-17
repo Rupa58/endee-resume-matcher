@@ -1,0 +1,6 @@
+endee
+sentence-transformers
+flask
+python-dotenv
+PyPDF2
+werkzeug

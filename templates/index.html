@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Resume & Job Matcher — Endee</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #21253a;
+      --border: #2e3248;
+      --accent: #6c63ff;
+      --accent2: #a78bfa;
+      --green: #22c55e;
+      --yellow: #eab308;
+      --red: #ef4444;
+      --text: #e2e8f0;
+      --muted: #8892a4;
+      --radius: 14px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1e1b4b 0%, #1a1d27 60%);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--accent); display: grid; place-items: center;
+      font-size: 22px;
+    }
+    .logo-text h1 { font-size: 1.2rem; font-weight: 700; color: var(--text); }
+    .logo-text p { font-size: 0.78rem; color: var(--muted); }
+    .badge {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 6px 14px;
+      font-size: 0.75rem; color: var(--muted);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* ── Layout ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+    /* ── Stats bar ── */
+    .stats-bar {
+      display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 20px; flex: 1; min-width: 140px;
+    }
+    .stat-card .label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+    .stat-card .value { font-size: 1.5rem; font-weight: 700; color: var(--accent2); margin-top: 4px; }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex; gap: 4px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 12px; padding: 4px;
+      margin-bottom: 28px;
+    }
+    .tab {
+      flex: 1; padding: 10px 8px; border: none; background: transparent;
+      color: var(--muted); border-radius: 9px; cursor: pointer;
+      font-size: 0.85rem; font-weight: 500; transition: all .2s;
+    }
+    .tab.active { background: var(--accent); color: #fff; }
+    .tab:hover:not(.active) { background: var(--surface2); color: var(--text); }
+
+    /* ── Panels ── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px; margin-bottom: 20px;
+    }
+    .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; color: var(--text); }
+
+    /* ── Form elements ── */
+    label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; }
+    textarea, input[type=text], select {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); padding: 12px 14px;
+      font-size: 0.9rem; outline: none; font-family: inherit; resize: vertical;
+      transition: border-color .2s;
+    }
+    textarea:focus, input:focus, select:focus { border-color: var(--accent); }
+    .row { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; margin-top: 14px; }
+    .row .field { flex: 1; min-width: 160px; }
+
+    /* ── Buttons ── */
+    .btn {
+      padding: 11px 24px; border: none; border-radius: 8px; cursor: pointer;
+      font-size: 0.88rem; font-weight: 600; transition: all .2s;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #5a52e0; transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: .5; cursor: default; transform: none; }
+    .btn-outline {
+      background: transparent; border: 1px solid var(--border); color: var(--muted);
+    }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Upload zone ── */
+    .upload-zone {
+      border: 2px dashed var(--border); border-radius: 10px;
+      padding: 36px 24px; text-align: center; cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: rgba(108,99,255,.05); }
+    .upload-zone .icon { font-size: 2.4rem; margin-bottom: 10px; }
+    .upload-zone p { color: var(--muted); font-size: 0.9rem; }
+    .upload-zone strong { color: var(--accent2); }
+    #file-input { display: none; }
+
+    /* ── Results ── */
+    .results-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .results-header h3 { font-size: 0.95rem; font-weight: 600; }
+    .results-count {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 3px 12px; font-size: 0.75rem; color: var(--muted);
+    }
+
+    .result-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px 20px; margin-bottom: 12px;
+      transition: border-color .2s, transform .15s;
+      animation: fadeUp .3s ease;
+    }
+    .result-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+
+    .result-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .result-title { font-weight: 600; font-size: 1rem; color: var(--text); }
+    .result-subtitle { font-size: 0.82rem; color: var(--muted); margin-top: 3px; }
+
+    .match-badge {
+      display: flex; flex-direction: column; align-items: center;
+      min-width: 58px;
+    }
+    .match-pct {
+      font-size: 1.3rem; font-weight: 800; line-height: 1;
+    }
+    .match-label { font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
+
+    .result-skills {
+      margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px;
+    }
+    .skill-tag {
+      background: rgba(108,99,255,.15); border: 1px solid rgba(108,99,255,.3);
+      border-radius: 6px; padding: 3px 9px; font-size: 0.73rem; color: var(--accent2);
+    }
+    .result-meta { margin-top: 10px; display: flex; gap: 16px; flex-wrap: wrap; }
+    .meta-item { font-size: 0.78rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+
+    .progress-bar {
+      height: 4px; border-radius: 2px;
+      background: var(--border); margin-top: 12px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width .6s ease;
+    }
+
+    /* ── Examples ── */
+    .examples { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .example-btn {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 5px 13px; font-size: 0.76rem;
+      color: var(--muted); cursor: pointer; transition: all .2s;
+    }
+    .example-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block; width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    /* ── Empty / error ── */
+    .empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+    .empty .icon { font-size: 2.5rem; margin-bottom: 10px; }
+    .error-msg { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); border-radius: 8px; padding: 12px 16px; color: #fca5a5; font-size: 0.85rem; margin-top: 12px; }
+
+    /* ── Responsive ── */
+    @media(max-width:600px) {
+      header { padding: 14px 16px; }
+      .container { padding: 20px 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🎯</div>
+    <div class="logo-text">
+      <h1>AI Resume &amp; Job Matcher</h1>
+      <p>Semantic matching powered by Endee Vector Database</p>
+    </div>
+  </div>
+  <div class="badge">
+    <span class="dot"></span>
+    <span id="status-text">Connecting to Endee...</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="label">Index</div>
+      <div class="value" id="stat-index">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Vectors Stored</div>
+      <div class="value" id="stat-vectors">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Dimensions</div>
+      <div class="value" id="stat-dim">384</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Similarity</div>
+      <div class="value">Cosine</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('search')">🔍 Smart Search</button>
+    <button class="tab" onclick="switchTab('resume')">📄 Match My Resume</button>
+    <button class="tab" onclick="switchTab('job')">💼 Find Candidates</button>
+    <button class="tab" onclick="switchTab('upload')">📤 Upload PDF</button>
+  </div>
+
+  <!-- ── Tab: Smart Search ───────────────────────────────────────── -->
+  <div id="tab-search" class="panel active">
+    <div class="card">
+      <h2>🔍 Semantic Search — Find Jobs or Candidates</h2>
+      <label>Describe the skills or role you are looking for</label>
+      <textarea id="search-query" rows="3" placeholder="e.g. Python Data Analyst with Power BI and SQL, 3 years experience..."></textarea>
+      <div class="examples">
+        <span class="example-btn" onclick="fill('search-query', 'Python Data Analyst with Power BI and SQL experience')">Python Data Analyst + Power BI</span>
+        <span class="example-btn" onclick="fill('search-query', 'Machine Learning Engineer with NLP and deep learning')">ML Engineer NLP</span>
+        <span class="example-btn" onclick="fill('search-query', 'Full Stack React Node.js developer')">Full Stack React + Node</span>
+        <span class="example-btn" onclick="fill('search-query', 'DevOps engineer with Kubernetes and AWS experience')">DevOps Kubernetes AWS</span>
+        <span class="example-btn" onclick="fill('search-query', 'Data Engineer Apache Spark Kafka Snowflake pipelines')">Data Engineer Spark + Kafka</span>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Search in</label>
+          <select id="search-mode">
+            <option value="jobs_for_resume">Jobs (match skills → jobs)</option>
+            <option value="resumes_for_job">Resumes (match role → candidates)</option>
+            <option value="all">Everything</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Top results</label>
+          <select id="search-topk">
+            <option value="3">3</option>
+            <option value="5" selected>5</option>
+            <option value="8">8</option>
+            <option value="10">10</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="btn-search" onclick="doSearch()">
+          Search Endee
+        </button>
+      </div>
+    </div>
+    <div id="results-search"></div>
+  </div>
+
+  <!-- ── Tab: Resume → Jobs ─────────────────────────────────────── -->
+  <div id="tab-resume" class="panel">
+    <div class="card">
+      <h2>📄 Paste Your Resume — Find Matching Jobs</h2>
+      <label>Paste your resume text or key skills and experience</label>
+      <textarea id="resume-text" rows="7" placeholder="Paste your resume here...&#10;&#10;Example:&#10;Software Engineer with 3 years of experience. Skills: Python, TensorFlow, PyTorch, NLP, deep learning, AWS. Worked at Infosys building ML models for sentiment analysis and text classification. M.Tech from IIT."></textarea>
+      <div class="examples">
+        <span class="example-btn" onclick="fillResume('data')">📊 Data Analyst profile</span>
+        <span class="example-btn" onclick="fillResume('ml')">🤖 ML Engineer profile</span>
+        <span class="example-btn" onclick="fillResume('devops')">⚙️ DevOps profile</span>
+        <span class="example-btn" onclick="fillResume('nlp')">💬 NLP Engineer profile</span>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Top matches</label>
+          <select id="resume-topk">
+            <option value="3">3</option>
+            <option value="5" selected>5</option>
+            <option value="8">8</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="btn-resume" onclick="doResumeMatch()">
+          Find Matching Jobs
+        </button>
+      </div>
+    </div>
+    <div id="results-resume"></div>
+  </div>
+
+  <!-- ── Tab: Job → Resumes ─────────────────────────────────────── -->
+  <div id="tab-job" class="panel">
+    <div class="card">
+      <h2>💼 Post a Job Description — Find Top Candidates</h2>
+      <label>Paste your job description or required skills</label>
+      <textarea id="job-text" rows="7" placeholder="Paste job description here...&#10;&#10;Example:&#10;We are looking for a Senior Data Scientist with 4+ years of experience in Python, machine learning, A/B testing, and recommendation systems. Experience with Scikit-learn and statistics required."></textarea>
+      <div class="examples">
+        <span class="example-btn" onclick="fillJob('data_analyst')">📊 Data Analyst JD</span>
+        <span class="example-btn" onclick="fillJob('ml_engineer')">🤖 ML Engineer JD</span>
+        <span class="example-btn" onclick="fillJob('data_engineer')">🔧 Data Engineer JD</span>
+        <span class="example-btn" onclick="fillJob('fullstack')">🌐 Full Stack JD</span>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Top candidates</label>
+          <select id="job-topk">
+            <option value="3">3</option>
+            <option value="5" selected>5</option>
+            <option value="8">8</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="btn-job" onclick="doJobMatch()">
+          Find Top Candidates
+        </button>
+      </div>
+    </div>
+    <div id="results-job"></div>
+  </div>
+
+  <!-- ── Tab: Upload PDF ────────────────────────────────────────── -->
+  <div id="tab-upload" class="panel">
+    <div class="card">
+      <h2>📤 Upload Resume PDF — Auto Match to Jobs</h2>
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()"
+        ondragover="event.preventDefault(); this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="handleDrop(event)">
+        <div class="icon">📎</div>
+        <p><strong>Click to upload</strong> or drag &amp; drop your resume PDF</p>
+        <p style="margin-top:6px; font-size:0.75rem;">Supports PDF up to 5 MB</p>
+      </div>
+      <input type="file" id="file-input" accept=".pdf" onchange="handleFileSelect(event)" />
+      <div id="file-name" style="margin-top:10px; color:var(--muted); font-size:0.85rem;"></div>
+      <div class="row">
+        <div class="field">
+          <label>Top job matches</label>
+          <select id="upload-topk">
+            <option value="3">3</option>
+            <option value="5" selected>5</option>
+            <option value="8">8</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="btn-upload" onclick="doUpload()" disabled>
+          Match Resume to Jobs
+        </button>
+      </div>
+      <div id="extracted-text"></div>
+    </div>
+    <div id="results-upload"></div>
+  </div>
+
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+let uploadedFile = null;
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const names = ['search','resume','job','upload'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`tab-${name}`).classList.add('active');
+}
+
+// ── Fill helpers ──────────────────────────────────────────────────────────────
+function fill(id, text) {
+  document.getElementById(id).value = text;
+}
+
+function fillResume(type) {
+  const samples = {
+    data: "Experienced Data Analyst with 3 years at TCS. Skills: Python, SQL, Power BI, Tableau, Excel, Pandas, Statistics, Data Visualization. Built executive dashboards in Power BI. Wrote complex SQL queries for reporting. B.Tech Computer Science.",
+    ml: "Machine Learning Engineer with 4 years at Infosys. Skills: Python, TensorFlow, PyTorch, Scikit-learn, Deep Learning, NLP, BERT, Transformers, Docker, AWS, MLOps. Built NLP models for text classification and sentiment analysis. Deployed ML models to AWS SageMaker. M.Tech from IIT Hyderabad.",
+    devops: "DevOps Engineer with 3 years at Accenture. Skills: AWS, Docker, Kubernetes, Terraform, CI/CD, Jenkins, GitHub Actions, Linux, Bash, Ansible, Monitoring. Built CI/CD pipelines, managed AWS EKS clusters, infrastructure as code with Terraform. B.Tech BITS Pilani.",
+    nlp: "NLP Research Engineer with 3 years at Amazon. Skills: Python, NLP, Hugging Face, BERT, GPT, LLM, LangChain, Vector Databases, RAG, PyTorch, Semantic Search. Fine-tuned BERT for NER. Built RAG chatbot with LangChain. M.Tech CSE IIT Madras.",
+  };
+  document.getElementById('resume-text').value = samples[type] || '';
+}
+
+function fillJob(type) {
+  const samples = {
+    data_analyst: "We are hiring a Data Analyst. Required: Python, SQL, Power BI, Excel, Tableau, Data Visualization, Statistics. Responsibilities: Build dashboards, write SQL queries, present insights to stakeholders. Experience: 2-4 years.",
+    ml_engineer: "We are hiring a Machine Learning Engineer. Required: Python, TensorFlow, PyTorch, Deep Learning, NLP, Docker, AWS, MLOps. Responsibilities: Design ML models, deploy to production, build MLOps pipelines. Experience: 3-6 years.",
+    data_engineer: "We are hiring a Data Engineer. Required: Python, Apache Spark, Kafka, Airflow, SQL, Snowflake, dbt, AWS, data pipelines. Responsibilities: Build real-time pipelines, design data models, set up Airflow DAGs. Experience: 3-6 years.",
+    fullstack: "We are hiring a Full Stack Engineer. Required: React, Node.js, JavaScript, TypeScript, MongoDB, REST APIs, Docker, AWS. Responsibilities: Build web apps, design APIs, optimize frontend and backend. Experience: 2-5 years.",
+  };
+  document.getElementById('job-text').value = samples[type] || '';
+}
+
+// ── Color by score ─────────────────────────────────────────────────────────────
+function scoreColor(pct) {
+  if (pct >= 75) return 'var(--green)';
+  if (pct >= 50) return 'var(--accent2)';
+  if (pct >= 30) return 'var(--yellow)';
+  return 'var(--red)';
+}
+
+// ── Render results ─────────────────────────────────────────────────────────────
+function renderResults(results, containerId) {
+  const el = document.getElementById(containerId);
+  if (!results || results.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="icon">🔍</div><p>No results found. Try a different query.</p></div>`;
+    return;
+  }
+
+  const isJob = results[0].type === 'job';
+  const header = isJob ? 'Matching Jobs' : 'Matching Candidates';
+
+  let html = `<div class="results-header">
+    <h3>✅ ${header}</h3>
+    <span class="results-count">${results.length} found via Endee</span>
+  </div>`;
+
+  results.forEach((r, i) => {
+    const pct = r.similarity;
+    const color = scoreColor(pct);
+    const skills = (r.required_skills || r.skills || '').split(',').slice(0, 6);
+    const skillTags = skills.map(s => `<span class="skill-tag">${s.trim()}</span>`).join('');
+
+    if (isJob) {
+      html += `<div class="result-card" style="animation-delay:${i*0.05}s">
+        <div class="result-top">
+          <div>
+            <div class="result-title">💼 ${r.title}</div>
+            <div class="result-subtitle">${r.company} · ${r.location || ''}</div>
+          </div>
+          <div class="match-badge">
+            <div class="match-pct" style="color:${color}">${pct}%</div>
+            <div class="match-label">match</div>
+          </div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%; background:${color}"></div></div>
+        <div class="result-skills">${skillTags}</div>
+        <div class="result-meta">
+          <span class="meta-item">🕐 ${r.experience_required || 'Not specified'}</span>
+          <span class="meta-item">📍 ${r.location || 'Not specified'}</span>
+        </div>
+        <div style="margin-top:10px; font-size:0.8rem; color:var(--muted); line-height:1.5">${(r.description || '').substring(0,180)}…</div>
+      </div>`;
+    } else {
+      html += `<div class="result-card" style="animation-delay:${i*0.05}s">
+        <div class="result-top">
+          <div>
+            <div class="result-title">👤 ${r.name}</div>
+            <div class="result-subtitle">${r.title} · ${r.location || ''}</div>
+          </div>
+          <div class="match-badge">
+            <div class="match-pct" style="color:${color}">${pct}%</div>
+            <div class="match-label">match</div>
+          </div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%; background:${color}"></div></div>
+        <div class="result-skills">${skillTags}</div>
+        <div class="result-meta">
+          <span class="meta-item">🎓 ${r.education || 'Not specified'}</span>
+          <span class="meta-item">📍 ${r.location || 'Not specified'}</span>
+        </div>
+        <div style="margin-top:10px; font-size:0.8rem; color:var(--muted); line-height:1.5">${(r.summary || '').substring(0,180)}</div>
+      </div>`;
+    }
+  });
+
+  el.innerHTML = html;
+}
+
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  if (loading) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Searching Endee...';
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = btn.dataset.label || 'Search';
+  }
+}
+
+function showError(containerId, msg) {
+  document.getElementById(containerId).innerHTML = `<div class="error-msg">⚠️ ${msg}</div>`;
+}
+
+// ── Search ─────────────────────────────────────────────────────────────────────
+async function doSearch() {
+  const query = document.getElementById('search-query').value.trim();
+  if (!query) return alert('Please enter a search query.');
+  const mode = document.getElementById('search-mode').value;
+  const top_k = document.getElementById('search-topk').value;
+  document.getElementById('btn-search').dataset.label = 'Search Endee';
+  setLoading('btn-search', true);
+  try {
+    const res = await fetch('/api/search', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ query, mode, top_k: parseInt(top_k) })
+    });
+    const data = await res.json();
+    if (data.error) showError('results-search', data.error);
+    else renderResults(data.results, 'results-search');
+  } catch(e) { showError('results-search', 'Could not reach the server. Is Flask running?'); }
+  finally { document.getElementById('btn-search').disabled = false; document.getElementById('btn-search').innerHTML = 'Search Endee'; }
+}
+
+// ── Resume match ───────────────────────────────────────────────────────────────
+async function doResumeMatch() {
+  const query = document.getElementById('resume-text').value.trim();
+  if (!query) return alert('Please paste your resume text.');
+  const top_k = document.getElementById('resume-topk').value;
+  document.getElementById('btn-resume').dataset.label = 'Find Matching Jobs';
+  setLoading('btn-resume', true);
+  try {
+    const res = await fetch('/api/search', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ query, mode: 'jobs_for_resume', top_k: parseInt(top_k) })
+    });
+    const data = await res.json();
+    if (data.error) showError('results-resume', data.error);
+    else renderResults(data.results, 'results-resume');
+  } catch(e) { showError('results-resume', 'Could not reach the server.'); }
+  finally { document.getElementById('btn-resume').disabled = false; document.getElementById('btn-resume').innerHTML = 'Find Matching Jobs'; }
+}
+
+// ── Job match ──────────────────────────────────────────────────────────────────
+async function doJobMatch() {
+  const query = document.getElementById('job-text').value.trim();
+  if (!query) return alert('Please paste a job description.');
+  const top_k = document.getElementById('job-topk').value;
+  setLoading('btn-job', true);
+  try {
+    const res = await fetch('/api/search', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ query, mode: 'resumes_for_job', top_k: parseInt(top_k) })
+    });
+    const data = await res.json();
+    if (data.error) showError('results-job', data.error);
+    else renderResults(data.results, 'results-job');
+  } catch(e) { showError('results-job', 'Could not reach the server.'); }
+  finally { document.getElementById('btn-job').disabled = false; document.getElementById('btn-job').innerHTML = 'Find Top Candidates'; }
+}
+
+// ── Upload ─────────────────────────────────────────────────────────────────────
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  uploadedFile = file;
+  document.getElementById('file-name').textContent = `Selected: ${file.name} (${(file.size/1024).toFixed(0)} KB)`;
+  document.getElementById('btn-upload').disabled = false;
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type === 'application/pdf') {
+    uploadedFile = file;
+    document.getElementById('file-name').textContent = `Selected: ${file.name}`;
+    document.getElementById('btn-upload').disabled = false;
+  }
+}
+
+async function doUpload() {
+  if (!uploadedFile) return;
+  const top_k = document.getElementById('upload-topk').value;
+  setLoading('btn-upload', true);
+  const form = new FormData();
+  form.append('resume', uploadedFile);
+  form.append('top_k', top_k);
+  try {
+    const res = await fetch('/api/upload_resume', { method: 'POST', body: form });
+    const data = await res.json();
+    if (data.error) { showError('results-upload', data.error); return; }
+    document.getElementById('extracted-text').innerHTML =
+      `<div style="margin-top:14px; padding:12px; background:var(--surface2); border-radius:8px; border:1px solid var(--border);">
+        <div style="font-size:0.75rem; color:var(--muted); margin-bottom:6px;">📝 Extracted text preview:</div>
+        <div style="font-size:0.82rem; color:var(--muted); font-style:italic">${data.extracted_text}</div>
+      </div>`;
+    renderResults(data.results, 'results-upload');
+  } catch(e) { showError('results-upload', 'Upload failed. Is Flask running?'); }
+  finally { document.getElementById('btn-upload').disabled = false; document.getElementById('btn-upload').innerHTML = 'Match Resume to Jobs'; }
+}
+
+// ── Load stats ────────────────────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const res = await fetch('/api/stats');
+    const data = await res.json();
+    if (data.status === 'connected' || data.vector_count !== undefined) {
+      document.getElementById('stat-index').textContent = data.index_name || 'resume_jobs';
+      document.getElementById('stat-vectors').textContent = data.vector_count ?? '—';
+      document.getElementById('stat-dim').textContent = data.dimension || 384;
+      document.getElementById('status-text').textContent = 'Endee connected';
+    } else {
+      document.getElementById('status-text').textContent = 'Endee not ready';
+    }
+  } catch(e) {
+    document.getElementById('status-text').textContent = 'Endee offline';
+  }
+}
+
+loadStats();
+document.getElementById('btn-search').dataset.label = 'Search Endee';
+</script>
+</body>
+</html>

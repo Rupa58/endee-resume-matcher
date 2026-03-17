@@ -53,7 +53,10 @@ def ingest_all(reset=False):
             pass
     existing = client.list_indexes()
     if INDEX_NAME not in existing:
-        client.create_index(name=INDEX_NAME, dimension=DIM, space_type="cosine", precision=Precision.INT8)
+        try:
+            client.create_index(name=INDEX_NAME, dimension=DIM, space_type="cosine", precision=Precision.INT8)
+        except Exception:
+            pass
         print(f"✅ Created Endee index: '{INDEX_NAME}'")
     else:
         print(f"ℹ️  Index '{INDEX_NAME}' already exists.")
@@ -81,3 +84,4 @@ def ingest_all(reset=False):
 
 if __name__ == "__main__":
     ingest_all(reset="--reset" in sys.argv)
+

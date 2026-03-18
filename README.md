@@ -1,8 +1,4 @@
-cd C:\Users\amili\OneDrive\Desktop\endee-resume-matcher
-notepad README.md
-```
 
-Add this at the very top of README.md (after the title):
 ```
 ## 🎥 Demo Video
 👉 Watch Demo: https://youtu.be/_Ui_5d4L0nE

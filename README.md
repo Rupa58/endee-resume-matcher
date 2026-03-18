@@ -1,3 +1,12 @@
+cd C:\Users\amili\OneDrive\Desktop\endee-resume-matcher
+notepad README.md
+```
+
+Add this at the very top of README.md (after the title):
+```
+## 🎥 Demo Video
+👉 Watch Demo: https://youtu.be/_Ui_5d4L0nE
+
 # 🎯 AI Resume & Job Matching System — Endee Vector Database
 
 A full-stack AI-powered **Resume and Job Matching System** built using **[Endee](https://github.com/endee-io/endee)** as the vector database. The system uses semantic similarity search to intelligently match candidates to jobs and jobs to candidates — going far beyond simple keyword matching.

@@ -1,4 +1,8 @@
+cd C:\Users\amili\OneDrive\Desktop\endee-resume-matcher
+notepad README.md
+```
 
+Add at the top:
 ```
 ## 🎥 Demo Video
 👉 Watch Demo: https://youtu.be/_Ui_5d4L0nE
